@@ -435,7 +435,10 @@ select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns
   <!-- S1 — Cardápio cliente -->
   <div id="s1" class="screen active">
     <div class="logo-hdr" style="position:relative">
-      <div class="shop-name" id="shop-name-big" style="visibility:hidden">Marmitaria</div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px">
+        <img src="logo.png" alt="Logo" class="shop-logo" onerror="this.style.display='none'" style="max-height:48px;max-width:120px;object-fit:contain;border-radius:6px;display:block">
+        <div class="shop-name" id="shop-name-big" style="visibility:hidden">Marmitaria</div>
+      </div>
       <div class="shop-tag" id="shop-tag" style="display:none"></div>
       <span id="open-tag" class="open-tag open" style="display:none"><span class="dot"></span><span id="open-tag-text">Aberto</span></span>
       <button id="link-owner-login" onclick="goToLogin()" style="position:absolute;top:14px;right:14px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.45);color:#fff;font-size:11px;cursor:pointer;font-weight:700;letter-spacing:.5px;padding:7px 12px;border-radius:20px;backdrop-filter:blur(6px)">SOU DA CASA →</button>
@@ -1005,10 +1008,18 @@ const DEFAULT_SEED = [
     {name:'Rabada',subtitle:'Acompanha arroz branco, tropeiro mineiro, pirão e Vinagrete Especial',priceP:18,priceM:22,priceG:25,availableP:true,availableM:true,availableG:true,acompanhamentos:['Arroz branco','Tropeiro mineiro','Pirão','Vinagrete Especial'],icon:'🍱'},
     {name:'Parmegiana de Frango',subtitle:'Acompanha arroz branco, tropeiro mineiro, batata frita e Vinagrete Especial',priceP:18,priceM:22,priceG:25,availableP:true,availableM:true,availableG:true,acompanhamentos:['Arroz branco','Tropeiro mineiro','Batata frita','Vinagrete Especial'],icon:'🍱'},
   ]},
-  { name:'Refrigerantes', kind:'outro', items:[
+  { name:'Bebidas', kind:'outro', items:[
     {name:'Coca-Cola lata',subtitle:'350ml',price:6,icon:'🥤'},
     {name:'Guaraná lata',subtitle:'350ml',price:5,icon:'🥤'},
+    {name:'Água Mineral',subtitle:'500ml',price:4,icon:'🥤'},
   ]},
+  { name:'Sobremesas', kind:'outro', items:[
+    {name:'Pudim de Leite',subtitle:'Fatia de pudim caseiro',price:8,icon:'🍮'},
+    {name:'Mousse de Maracujá',subtitle:'Copo 150ml',price:7,icon:'🍮'},
+  ]},
+  { name:'Outros / Adicionais', kind:'outro', items:[
+    {name:'Porção de Batata Frita',subtitle:'Extra 200g',price:10,icon:'🍟'},
+  ]}
 ];
 window.DEFAULT_SEED = DEFAULT_SEED;
 
@@ -1225,10 +1236,20 @@ function renderMenu(){
     </div>`;
   }
   
+  // Helper para verificar se um item está esgotado ou indisponível
+  const isItemSoldOut = (i, catKind) => {
+    if (i.available === false) return true;
+    if (catKind === 'prato') {
+      const allSizesSoldOut = i.availableP === false && i.availableM === false && i.availableG === false;
+      return allSizesSoldOut;
+    }
+    return false;
+  };
+
   // Mostra pratos disponíveis hoje
   const pratosDisponiveis=loadedItems.filter(i=>{
     const cat=loadedCats.find(c=>c._key===i.catKey);
-    return cat&&cat.kind==='prato'&&i.available!==false;
+    return cat && cat.kind==='prato' && !isItemSoldOut(i, cat.kind);
   });
   if(pratosDisponiveis.length){
     h+=`<div style="background:#fff8f0;border:1px solid #f5d9b8;border-radius:13px;padding:12px 14px;margin-bottom:14px">
@@ -1237,9 +1258,11 @@ function renderMenu(){
     </div>`;
   }
   
-  // Mostra só categorias visíveis ao cliente (prato / outro)
+  // Mostra só categorias visíveis ao cliente (prato / outro) que possuem itens ativos
   const visibleCats=loadedCats.filter(c=>c.kind==='prato'||c.kind==='outro');
-  const cats_with_items=visibleCats.filter(cat=>loadedItems.some(i=>i.catKey===cat._key));
+  const cats_with_items=visibleCats.filter(cat=>
+    loadedItems.some(i=>i.catKey===cat._key && !isItemSoldOut(i, cat.kind))
+  );
   if(cats_with_items.length>1){
     h+=`<nav class="cat-nav"><div class="cat-nav-scroll" id="cat-nav-scroll">`;
     cats_with_items.forEach((cat,idx)=>{
@@ -1249,42 +1272,32 @@ function renderMenu(){
     h+=`</div></nav>`;
   }
   visibleCats.forEach(cat=>{
-    const items=loadedItems.filter(i=>i.catKey===cat._key).sort((a,b)=>(a.ts||0)-(b.ts||0));
+    const items=loadedItems.filter(i=>i.catKey===cat._key && !isItemSoldOut(i, cat.kind)).sort((a,b)=>(a.ts||0)-(b.ts||0));
     if(!items.length)return;
     const ic=cat.kind==='prato'?'🍱 ':'';
     h+=`<div class="sec-label" id="sec-${cat._key}">${ic}${escapeHtml(cat.name)} <span class="badge-cnt">${items.length}</span></div>`;
     h+=`<div class="item-grid">`;
     items.forEach(it=>{
       const isPrato=cat.kind==='prato';
-      const soldOut=it.available===false;
       const sub=it.subtitle?`<div class="item-sub">${escapeHtml(it.subtitle)}</div>`:'';
       let priceArea='';
       if(isPrato){
         let sizesInfo = [];
         if (it.priceP && it.availableP !== false) sizesInfo.push(`P: R$ ${fmt(it.priceP)}`);
-        else if (it.priceP) sizesInfo.push(`<span style="text-decoration: line-through; opacity: 0.5">P: R$ ${fmt(it.priceP)}</span>`);
-        
         if (it.priceM && it.availableM !== false) sizesInfo.push(`M: R$ ${fmt(it.priceM)}`);
-        else if (it.priceM) sizesInfo.push(`<span style="text-decoration: line-through; opacity: 0.5">M: R$ ${fmt(it.priceM)}</span>`);
-        
         if (it.priceG && it.availableG !== false) sizesInfo.push(`G: R$ ${fmt(it.priceG)}`);
-        else if (it.priceG) sizesInfo.push(`<span style="text-decoration: line-through; opacity: 0.5">G: R$ ${fmt(it.priceG)}</span>`);
-
+        
         priceArea=`<div><span class="item-price-1" style="font-size:12.2px;color:#666;font-weight:500">${sizesInfo.join(' | ')}</span></div>`;
       } else {
         priceArea=`<div class="item-price-1">R$ ${fmt(it.price)}</div>`;
       }
       const visual=it.imageData?`<img class="item-img-lg" src="${it.imageData}" alt="${escapeAttr(it.name)}" loading="lazy" decoding="async">`:`<div class="item-emoji-lg">${escapeHtml(it.icon||(isPrato?'🍱':'🍽️'))}</div>`;
       
-      const allSizesSoldOut = isPrato && (it.availableP === false && it.availableM === false && it.availableG === false);
-      const isActuallySoldOut = soldOut || allSizesSoldOut;
-      const displaySoldOutTag = isActuallySoldOut ? '<span class="sold-out-tag">Esgotado</span>' : '';
-      
-      const handler=isActuallySoldOut?`onclick="toast('Item esgotado no momento')"`:(isPrato?`onclick="onClickPrato('${cat._key}','${it._key}')"`:`onclick="onClickProduct('${it._key}')"`);
-      h+=`<div class="item-card${isActuallySoldOut?' sold-out':''}" ${handler}>
+      const handler=isPrato?`onclick="onClickPrato('${cat._key}','${it._key}')"`:`onclick="onClickProduct('${it._key}')"`;
+      h+=`<div class="item-card" ${handler}>
         ${visual}
         <div class="item-info">
-          <div class="item-name">${escapeHtml(it.name)}${displaySoldOutTag}</div>
+          <div class="item-name">${escapeHtml(it.name)}</div>
           ${sub}
           ${priceArea}
         </div>
@@ -1432,16 +1445,13 @@ function mmRenderSizes(it){
     { key: 'G', label: 'Grande (G)', price: it.priceG, available: it.availableG !== false }
   ];
   list.innerHTML = sizes.map(s => {
-    if (!s.price) return '';
+    if (!s.price || !s.available) return '';
     const isSel = mmSt.size === s.key;
-    const disabled = !s.available;
-    const btnClass = `sm-btn${isSel ? ' sel' : ''}${disabled ? ' disabled' : ''}`;
-    const clickHandler = disabled ? '' : `onclick="mmSelectSize('${s.key}')"`;
-    return `<button type="button" class="${btnClass}" ${clickHandler}>
+    const btnClass = `sm-btn${isSel ? ' sel' : ''}`;
+    return `<button type="button" class="${btnClass}" onclick="mmSelectSize('${s.key}')">
       <span class="sm-ico">${s.key === 'P' ? '🥣' : s.key === 'M' ? '🍱' : '🍽️'}</span>
       <span class="sm-lbl" style="font-size:12px">${s.label}</span>
       <span class="sm-sub" style="font-weight:700;color:var(--clay)">R$ ${fmt(s.price)}</span>
-      ${disabled ? '<span style="font-size:9px;color:#cc3333;font-weight:800;margin-top:2px">ESGOTADO</span>' : ''}
     </button>`;
   }).join('');
 }
