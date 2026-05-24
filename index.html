@@ -436,7 +436,7 @@ select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns
   <div id="s1" class="screen active">
     <div class="logo-hdr" style="position:relative">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px">
-        <img src="logo.png" alt="Logo" class="shop-logo" onerror="this.style.display='none'" style="max-height:48px;max-width:120px;object-fit:contain;border-radius:6px;display:block">
+        <img src="logo.png" alt="Logo" class="shop-logo" onload="document.getElementById('shop-name-big').style.display='none'" onerror="this.style.display='none'" style="max-height:48px;max-width:120px;object-fit:contain;border-radius:6px;display:block">
         <div class="shop-name" id="shop-name-big" style="visibility:hidden">Marmitaria</div>
       </div>
       <div class="shop-tag" id="shop-tag" style="display:none"></div>
