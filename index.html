@@ -79,6 +79,63 @@ body{font-family:var(--font-body);background:#e8e8e8;display:flex;justify-conten
 .open-tag.closed{background:var(--clay);color:#fff}
 .open-tag .dot{width:6px;height:6px;background:#fff;border-radius:50%}
 
+/* Logo header responsive styles */
+.logo-hdr-left {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 60%;
+}
+@media (min-width: 900px) {
+  .logo-hdr-left {
+    max-width: 35%;
+  }
+}
+
+#link-owner-login {
+  position: absolute;
+  top: 14px;
+  right: 30px;
+}
+@media (min-width: 900px) {
+  #link-owner-login {
+    right: 14px;
+  }
+}
+
+.logo-center {
+  position: absolute;
+  top: auto;
+  bottom: 26px;
+  left: auto;
+  right: 10px;
+  transform: none;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+.logo-center-img {
+  height: 60px;
+  width: auto;
+  object-fit: contain;
+  transition: all .2s;
+}
+
+@media (min-width: 900px) {
+  .logo-center {
+    top: 50%;
+    left: 50%;
+    bottom: auto;
+    right: auto;
+    transform: translate(-50%, -50%);
+    justify-content: center;
+  }
+  .logo-center-img {
+    height: 90px;
+  }
+}
+
 .topbar{background:var(--ink);padding:0 18px;height:54px;display:flex;align-items:center;gap:12px;flex-shrink:0}
 .back-btn{background:none;border:none;color:#fff;font-size:18px;cursor:pointer;width:36px;height:36px;display:flex;align-items:center;justify-content:center;border-radius:8px;flex-shrink:0}
 .back-btn:hover{background:rgba(255,255,255,.12)}
@@ -435,10 +492,15 @@ select.inp{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns
   <!-- S1 — Cardápio cliente -->
   <div id="s1" class="screen active">
     <div class="logo-hdr" style="position:relative">
-      <div class="shop-name" id="shop-name-big" style="visibility:hidden">Marmitaria</div>
-      <div class="shop-tag" id="shop-tag" style="display:none"></div>
-      <span id="open-tag" class="open-tag open" style="display:none"><span class="dot"></span><span id="open-tag-text">Aberto</span></span>
-      <button id="link-owner-login" onclick="goToLogin()" style="position:absolute;top:14px;right:14px;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.45);color:#fff;font-size:11px;cursor:pointer;font-weight:700;letter-spacing:.5px;padding:7px 12px;border-radius:20px;backdrop-filter:blur(6px)">SOU DA CASA →</button>
+      <div class="logo-hdr-left">
+        <div class="shop-name" id="shop-name-big" style="visibility:hidden">Marmitaria</div>
+        <div class="shop-tag" id="shop-tag" style="display:none"></div>
+        <span id="open-tag" class="open-tag open" style="display:none"><span class="dot"></span><span id="open-tag-text">Aberto</span></span>
+      </div>
+      <div class="logo-center">
+        <img src="logo.png" alt="Logo" class="logo-center-img" onerror="this.style.display='none'">
+      </div>
+      <button id="link-owner-login" onclick="goToLogin()" style="background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.45);color:#fff;font-size:11px;cursor:pointer;font-weight:700;letter-spacing:.5px;padding:7px 12px;border-radius:20px;backdrop-filter:blur(6px)">SOU DA CASA →</button>
     </div>
 
     <div class="body" id="s1-body">
